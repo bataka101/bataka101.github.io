@@ -185,19 +185,32 @@
     </script>
 
     <script>
+       var targetLocations = [];
+      fetchData();
+      function fetchData() {
+      // URL ของ Web App ที่สร้างจาก GAS
+      var url = 'https://script.google.com/macros/s/AKfycbw1EYYoxfUJqvIzSoT76B28oeudzsnbXl22Abd-ihiWC4d6lhzX2QXhX3ICjNRuMoxllg/exec'; // URL ที่ได้จากการ deploy Web App
+
+      // ใช้ fetch เพื่อดึงข้อมูล JSON
+      fetch(url)
+        .then(response => response.json())  // แปลงผลลัพธ์เป็น JSON
+        .then(data => {
+          console.log("ข้อมูลที่ได้รับ: ", data);
+          if (Array.isArray(data)) {
+        targetLocations = targetLocations.concat(data); // รวมข้อมูล
+      } else {
+        targetLocations.push(data); // ถ้าเป็นอ็อบเจกต์เดียว
+      }
+        })
+        .catch(error => {
+          console.error('เกิดข้อผิดพลาด: ', error);
+        });
+    }
+      
+      
       let map;
       let userMarker;
-
-      // อาร์เรย์ของพิกัดที่ต้องการคำนวณระยะห่าง (5 สถานที่)
-
-      const targetLocations = [
-        { name: "สถานที่ 1", lat: 16.3720335, lon: 104.0043112 },
-        { name: "สถานที่ 2", lat: 13.736717, lon: 100.523186 },
-        { name: "สถานที่ 3", lat: 15.870032, lon: 100.992541 },
-        { name: "สถานที่ 4", lat: 18.787126, lon: 98.993014 },
-        { name: "Office โพนทอง", lat: 16.301578, lon: 103.983696 },
-      ];
-
+      
       // ฟังก์ชันเริ่มต้นแผนที่
       function initializeMap() {
         map = L.map("map").setView([13.736717, 100.523186], 13); // จุดเริ่มต้นคือกรุงเทพ
@@ -303,7 +316,7 @@
 
           // ตรวจสอบระยะห่างจากสถานที่ที่ใกล้ที่สุด
           if (closestLocation) {
-            if (closestDistance <= 100000) {
+            if (closestDistance <= 1) {
               showLoading("กำลังบันทึก CheckIn");
 
               async function sendData(idEm, name, position, department) {
