@@ -1,30 +1,430 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตัวอย่าง HTML</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>แผนที่ระบุพิกัดปัจจุบัน</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #map {
+      height: 250px; /* ปรับขนาดแผนที่ให้เล็กลง */
+      width: 100%;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      justify-content: center;
+    }
+    .result {
+      margin-top: 20px;
+    }
+    button {
+      padding: 15px 20px; /* เพิ่ม padding ให้ปุ่มใหญ่ขึ้น */
+      margin-top: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: 100%; /* ปรับให้ปุ่มยาวเต็มความกว้างของหน้าจอ */
+      font-size: 16px; /* ขนาดตัวอักษร */
+      border-radius: 12px; 
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .swal2-confirm, .swal2-cancel {
+      background-color: #4CAF50 !important; /* สีเขียว */
+      border-color: #4CAF50 !important; /* ขอบปุ่มสีเขียว */
+    }
+
+    .swal2-confirm:hover, .swal2-cancel:hover {
+      background-color: #45a049 !important; /* สีเขียวเข้มเมื่อ hover */
+      border-color: #45a049 !important; /* ขอบปุ่มเข้มเมื่อ hover */
+    }
+    .gradient-text {
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  }
+    #loadingPopup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* พื้นหลังเข้ม */
+  backdrop-filter: blur(6px);        /* เบลอพื้นหลัง */
+  -webkit-backdrop-filter: blur(6px); /* รองรับ Safari */
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+  font-family: sans-serif;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#loadingPopup.show {
+  display: flex;
+  opacity: 1;
+}
+
+
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px; /* เว้นช่องกับข้อความ */
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 18px;
+      text-shadow: 1px 1px 2px black;
+    }
+    .bg-natural-green {
+      background-color: #4CAF50; /* สีเขียวธรรมชาติอ่อน */
+    }
+
+  </style>
 </head>
 <body>
-    <header>
-        <h1>ยินดีต้อนรับสู่เว็บไซต์ของเรา!</h1>
-    </header>
+
+  <div id="loadingPopup">
+  <div class="spinner"></div>
+  <div class="loading-text">กำลังโหลด...</div>
+</div>
+<div class="w-100 text-center">
+  <h1 class="fw-bold display-4 gradient-text my-1">
+    BTK Checkin
+  </h1>
+</div>
+  
+  <div id="map"></div>
+
+  <!-- ปุ่มเช็คอิน -->
+  <button onclick="checkIn()">เช็คอิน</button>
+  <div class=" my-4 w-100 mt-2 mb-3">
+  <div class="p-2 bg-natural-green border border-success rounded">
+    <div class="mb-1 p-2 bg-white rounded shadow-sm" id="idEm"> กำลังโหลด </div>
+    <div class="mb-1 p-2 bg-white rounded shadow-sm" id="name"> กำลังโหลด </div>
+    <div class="mb-1 p-2 bg-white rounded shadow-sm" id="position"> กำลังโหลด </div>
+    <div class="mb-1 p-2 bg-white rounded shadow-sm" id="department"> กำลังโหลด </div>
+    <div class="p-2 bg-white rounded shadow-sm" id="result">กล่องที่ 4</div>
+  </div>
+</div>
+  
+  <div  id="userId" style="display: none;"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+  // ประกาศตัวแปรก่อน
+  let loadingInterval = null;
+
+  // showLoading อยู่บนสุด
+  function showLoading(message = "กำลังโหลด") {
+    const popup = document.getElementById('loadingPopup');
+    const loadingText = popup.querySelector('.loading-text');
+
+    let dotCount = 0;
+    clearInterval(loadingInterval);
+
+    loadingText.textContent = message;
+    loadingInterval = setInterval(() => {
+      dotCount = (dotCount + 1) % 4;
+      loadingText.textContent = `${message}${'.'.repeat(dotCount)}`;
+    }, 500);
+
+    popup.style.display = 'flex';
+    popup.classList.add('show');
+  }
+
+  function hideLoading() {
+    const popup = document.getElementById('loadingPopup');
+    popup.classList.remove('show');
+    popup.style.display = 'none';
+    clearInterval(loadingInterval);
+  }
+
+  // ✅ จากนี้จะเรียก showLoading() ได้แล้ว
+  showLoading("กำลังโหลด...");
+
+  // โค้ดอื่นๆ เช่น initializeMap(), startTracking(), main()...
+</script>
+
+  <script>
+    let map;
+    let userMarker;
+
+    // อาร์เรย์ของพิกัดที่ต้องการคำนวณระยะห่าง (5 สถานที่)
     
-    <section>
-        <h2>เกี่ยวกับเรา</h2>
-        <p>นี่คือลิงก์และข้อความเกี่ยวกับเว็บไซต์ของเราในภาษาไทย!</p>
-    </section>
+    const targetLocations = [
+      { name: 'สถานที่ 1', lat: 16.3720335, lon: 104.0043112 },
+      { name: 'สถานที่ 2', lat: 13.736717, lon: 100.523186 },
+      { name: 'สถานที่ 3', lat: 15.870032, lon: 100.992541 },
+      { name: 'สถานที่ 4', lat: 18.787126, lon: 98.993014 },
+      { name: 'Office โพนทอง', lat: 16.301578, lon: 103.983696 }
+    ];
 
-    <section>
-        <h2>ติดต่อเรา</h2>
-        <ul>
-            <li>อีเมล: example@email.com</li>
-            <li>โทรศัพท์: 012-345-6789</li>
-        </ul>
-    </section>
+    // ฟังก์ชันเริ่มต้นแผนที่
+    function initializeMap() {
+      map = L.map('map').setView([13.736717, 100.523186], 13); // จุดเริ่มต้นคือกรุงเทพ
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+    }
 
-    <footer>
-        <p>&copy; 2025 บริษัทของเรา</p>
-    </footer>
+    // สร้างไอคอนมาร์คเกอร์สีฟ้า
+    function createBlueMarker() {
+      return L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+    }
+
+    // คำนวณระยะทางระหว่างสองพิกัด (Haversine formula)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371000; // รัศมีโลก (เมตร)
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      
+      return R * c; // ระยะทางในเมตร
+    }
+
+    // ฟังก์ชันเริ่มการติดตามตำแหน่ง
+    function startTracking() {
+      if (navigator.geolocation) {
+        // เริ่มติดตามตำแหน่ง
+        navigator.geolocation.watchPosition(function(position) {
+          const userLat = position.coords.latitude;
+          const userLon = position.coords.longitude;
+
+          // ถ้ามาร์คเกอร์ยังไม่ถูกสร้างขึ้น, ให้สร้างใหม่
+          if (!userMarker) {
+            userMarker = L.marker([userLat, userLon], { icon: createBlueMarker() }).addTo(map);
+          } else {
+            // ถ้ามาร์คเกอร์มีอยู่แล้ว, ให้เคลื่อนที่ตามตำแหน่ง
+            userMarker.setLatLng([userLat, userLon]);
+          }
+
+          // ย้ายแผนที่ไปที่ตำแหน่งใหม่ของผู้ใช้
+          map.setView([userLat, userLon], 13);
+
+          document.getElementById('result').innerText = `ละติจูด: ${userLat}\nลองจิจูด: ${userLon}`;
+          document.getElementById('result').style.color = 'red'; 
+          
+        }, function(error) {
+          document.getElementById('result').innerText = "ไม่สามารถติดตามตำแหน่งได้";
+        }, {
+          enableHighAccuracy: true, // ใช้ GPS ที่มีความแม่นยำสูงสุด
+          maximumAge: 0, // ให้ดึงตำแหน่งใหม่ทุกครั้งที่มีการเปลี่ยนแปลง
+          timeout: 10000 // กำหนดเวลาในการรอให้หาตำแหน่ง
+        });
+      } else {
+        document.getElementById('result').innerText = "เบราว์เซอร์ไม่รองรับการดึงพิกัด";
+      }
+    }
+
+    // ฟังก์ชันเมื่อกดปุ่มเช็คอิน
+    function checkIn() {
+      if (userMarker) {
+        const userLat = userMarker.getLatLng().lat;
+        const userLon = userMarker.getLatLng().lng;
+
+        let closestLocation = null;
+        let closestDistance = Infinity;
+
+        // คำนวณระยะห่างจากพิกัดที่ระบุแต่ละจุด และหาค่าที่ใกล้ที่สุด
+        targetLocations.forEach(location => {
+          const distance = calculateDistance(userLat, userLon, location.lat, location.lon);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestLocation = location;
+          }
+        });
+
+        // ตรวจสอบระยะห่างจากสถานที่ที่ใกล้ที่สุด
+        if (closestLocation) {
+          if (closestDistance <= 100000) {
+            showLoading("กำลังบันทึก CheckIn");
+            
+    async function sendData(idEm,name,position,department) {
+      const url = 'https://script.google.com/macros/s/AKfycbx9rbbBHd8DZy3lUsXPz69xQ4tNg6OE8jjBP_7y1AIO761DBfVbKTYN_p_OXjbIe0iV/exec'; // URL ที่ Deploy GAS
+      const data = { idEm,name,position,department};
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: JSON.stringify(data)
+          });
+        const result = await response.json();
+        if (result.status === 'success') {
+          hideLoading();
+          Swal.fire({
+  title: '✅ บันทึกข้อมูลเรียบร้อย',
+  html: `คุณ : ${result.data.name}<br>บันทึกการเข้างาน<br>เวลา : ${result.data.time}`,
+  icon: 'success',
+  timer: 5000,
+  timerProgressBar: true,
+  allowOutsideClick: false,
+  allowEscapeKey: false,
+  didOpen: () => {
+    const b = Swal.getHtmlContainer().querySelector('b');
+    let timerInterval = setInterval(() => {
+      const timeLeft = Swal.getTimerLeft();
+      if (timeLeft && b) b.textContent = Math.ceil(timeLeft / 1000);
+    }, 100);
+  },
+  willClose: () => {
+    if (typeof liff !== 'undefined') {
+      liff.closeWindow(); // ปิดหน้าต่าง LIFF
+    } else {
+      console.warn("ไม่พบ LIFF");
+    }
+  }
+});
+
+          
+          //console.log('บันทึกข้อมูลเรียบร้อย');
+        } else {
+          
+          
+          //console.error('เกิดข้อผิดพลาด:', result.message);
+        }
+
+    }
+  // เรียกใช้
+          var idEm = document.getElementById('idEm').textContent;
+          var name = document.getElementById('name').textContent;
+          var position = document.getElementById('position').textContent;
+          var department = document.getElementById('department').textContent;
+    sendData(idEm,name,position,department);
+
+            
+            
+            //alert(`OK: สถานที่ที่ใกล้ที่สุดคือ ${closestLocation.name} ห่างจากคุณ: ${closestDistance.toFixed(2)} เมตร`);
+          } else {
+            let name = document.getElementById('name').textContent;
+            Swal.fire({title: "ไม่อยู่ในตำแหน่งที่กำหนด !",
+                      html: `คุณ : ${name}<br>ห่างจาก: ${closestLocation.name}<br>ประมาณ: ${closestDistance.toFixed(2)} เมตร`,
+                      icon: "error"});
+
+            
+            //alert(`ไม่อยู่ในตำแหน่ง: สถานที่ที่ใกล้ที่สุดคือ ${closestLocation.name} ห่างจากคุณ: ${closestDistance.toFixed(2)} เมตร`);
+          }
+        } else {
+          
+            Swal.fire({title: "ไม่พบสถานที่ที่ใกล้ที่สุด !",
+                      html: "ไม่พบสถานที่ที่ใกล้ที่สุด",
+                      icon: "error"});
+          
+          //alert("ไม่พบสถานที่ที่ใกล้ที่สุด");
+        }
+      } else {
+        Swal.fire({title: "ไม่พบตำแหน่งปัจจุบัน !",
+                      html: "กรุณาเช็ค GPS และ Internet ของคุณ",
+                      icon: "error"});
+          //alert("ไม่สามารถคำนวณระยะห่างได้ เนื่องจากไม่พบตำแหน่งปัจจุบัน");
+      }
+    }
+
+    // เริ่มต้นแผนที่และติดตามตำแหน่งทันที
+   showLoading();
+    initializeMap();
+    startTracking();
+ //------------------------------
+     main();
+    function main(){
+      liff.init({ liffId: '2007556215-wdVOeVYe' }) // แทนที่ด้วย LIFF ID ของคุณ
+        .then(() => {
+          if (!liff.isLoggedIn()) {
+            liff.login();
+          } else {//เริ่ม else
+            liff.getProfile().then((profile) => {
+                const userID = profile.userId;
+              fetchGoogleSheetData(userID);
+            })
+             
+            
+             }//สุด else
+          });
+        }
+         async function fetchGoogleSheetData(userID) {
+            const url = 'https://script.google.com/macros/s/AKfycbyPIu0lGlAbTF_ikWauXtKzHgtOCcamm5O7cyaHl8061cMMPPUb0QTvsE4rQu2iyjBz/exec?userId='+userID; // ใส่ URL ของ Google Apps Script ที่คุณ Deploy
+            const response = await fetch(url);
+            const jsonData = await response.json();
+            updateData(jsonData,userID)
+        }
+  function updateData(jsonData,userID){
+    var dataA = JSON.stringify(jsonData);
+    var data = JSON.parse(dataA);
+    console.log(data);
+    if(data.status == "success"){
+      document.getElementById('name').innerText = data.name;
+      document.getElementById('name').style.color = 'red'; 
+      document.getElementById('idEm').innerText = data.idEm;
+      document.getElementById('idEm').style.color = 'red';
+      document.getElementById('department').innerText = data.department;
+      document.getElementById('department').style.color = 'red'; 
+      document.getElementById('position').innerText = data.position;
+      document.getElementById('position').style.color = 'red'; 
+      document.getElementById('userId').innerText = data.userId;
+      hideLoading();
+    }else{
+      let timerInterval;
+hideLoading();
+  Swal.fire({
+    title: 'ไม่พบข้อมูลในระบบ',
+    html: 'ระบบจะปิดอัตโนมัติใน <b></b> วินาที',
+    timer: 5000,
+    timerProgressBar: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      const b = Swal.getHtmlContainer().querySelector('b');
+      timerInterval = setInterval(() => {
+        b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+      }, 100);
+    },
+    willClose: () => {
+      clearInterval(timerInterval);
+      // ปิดหน้าต่าง LIFF เมื่อ popup ปิด
+      if (typeof liff !== 'undefined') {
+        liff.closeWindow();
+      } else {
+        console.log("ไม่พบ LIFF");
+      }
+    }
+  });
+      
+    }
+    
+  }
+
+  </script>
+  
 </body>
 </html>
