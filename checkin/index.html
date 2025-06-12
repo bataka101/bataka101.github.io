@@ -322,7 +322,7 @@
                   hideLoading();
                   Swal.fire({
                     title: "✅ บันทึกข้อมูลเรียบร้อย",
-                    html: `รหัสพนักงาน : ${result.data.idEm}<br>คุณ : ${result.data.name}<br>บันทึกการเข้างาน<br>เวลา : ${result.data.time}`,
+                    html: `<div style="color: #4caf50;">รหัสพนักงาน : ${result.data.idEm}<br>คุณ : ${result.data.name}<br>บันทึกการเข้างาน<br>เวลา : ${result.data.time}</div>`,
                     icon: "success",
                     timer: 5000,
                     timerProgressBar: true,
@@ -367,7 +367,7 @@
                    hideLoading();
                   Swal.fire({
                     title: "คุณได้ Checkin แล้ว",
-                    html: `รหัสพนักงาน : ${result.data.idEm}<br>คุณ : ${result.data.name}<br>ได้ Checkin แล้วน<br>เวลา : ${result.data.time}`,
+                    html: `<div style="color: red;">รหัสพนักงาน : ${result.data.idEm}<br>คุณ : ${result.data.name}<br>ได้ Checkin แล้ว<br>เวลา : ${result.data.time}</div>`,
                     icon: "error",
                     timer: 5000,
                     timerProgressBar: true,
@@ -481,7 +481,6 @@
               //เริ่ม else
               liff.getProfile().then((profile) => {
                 const userID = profile.userId;
-                console.log(userID);
                 fetchGoogleSheetData(userID);
               });
             } //สุด else
@@ -498,7 +497,6 @@
       function updateData(jsonData, userID) {
         var dataA = JSON.stringify(jsonData);
         var data = JSON.parse(dataA);
-        console.log(data);
         if (data.status == "success") {
           document.getElementById("name").innerText = data.name;
           document.getElementById("name").style.color = "red";
