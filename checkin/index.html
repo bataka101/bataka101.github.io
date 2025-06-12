@@ -354,6 +354,7 @@
                               });
                         
                         liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                        
                       } else {
                         console.warn("ไม่พบ LIFF");
                       }
@@ -361,7 +362,39 @@
                   });
 
                   //console.log('บันทึกข้อมูลเรียบร้อย');
-                } else {
+                } else if(result.status === "no"){
+                    
+                   hideLoading();
+                  Swal.fire({
+                    title: "คุณได้ Checkin แล้ว",
+                    html: `รหัสพนักงาน : ${result.data.idEm}<br>คุณ : ${result.data.name}<br>ได้ Checkin แล้วน<br>เวลา : ${result.data.time}`,
+                    icon: "error",
+                    timer: 5000,
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                      const b = Swal.getHtmlContainer().querySelector("b");
+                      let timerInterval = setInterval(() => {
+                        const timeLeft = Swal.getTimerLeft();
+                        if (timeLeft && b)
+                          b.textContent = Math.ceil(timeLeft / 1000);
+                      }, 100);
+                    },
+                    willClose: () => {
+                      if (typeof liff !== "undefined") {
+                        
+                        liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                        
+                      } else {
+                        console.warn("ไม่พบ LIFF");
+                      }
+                    },
+                  });
+
+                  
+                  
+                }else{
                   hideLoading();
                   Swal.fire({
                     title: "เกิดข้อผิดพลาด !",
