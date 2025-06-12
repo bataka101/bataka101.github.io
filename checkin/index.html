@@ -142,7 +142,7 @@
         <div class="mb-1 p-2 bg-white rounded shadow-sm" id="department">
           กำลังโหลด
         </div>
-        <div class="p-2 bg-white rounded shadow-sm" id="result">กล่องที่ 4</div>
+        <div class="p-2 bg-white rounded shadow-sm" id="result">กำลังโหลด</div>
       </div>
     </div>
 
@@ -342,7 +342,7 @@
                         liff.sendMessages([{
                           
                               type: "text",
-                              text: "@บันทึกการทำงาน "+result.data.idEm,
+                              text: "บันทึกการทำงาน "+result.data.idEm,
                           
                             },])
                         
@@ -475,7 +475,6 @@
           document.getElementById("department").style.color = "red";
           document.getElementById("position").innerText = data.position;
           document.getElementById("position").style.color = "red";
-          document.getElementById("userId").innerText = data.userId;
           hideLoading();
         } else {
           let timerInterval;
