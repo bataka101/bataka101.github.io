@@ -316,7 +316,7 @@
 
           // ตรวจสอบระยะห่างจากสถานที่ที่ใกล้ที่สุด
           if (closestLocation) {
-            if (closestDistance <= 1) {
+            if (closestDistance <= 1000) {
               showLoading("กำลังบันทึก CheckIn");
 
               async function sendData(idEm, name, position, department) {
