@@ -464,44 +464,44 @@
                 flex-direction: column;
             }
         }
-        .loader-wrapper {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(105, 105, 105, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 9999;
-    }
 
-    .loader {
-      border: 10px solid #f3f3f3;
-      border-top: 10px solid #3498db;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
-    }
+        #loader {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
 
-    .loading-text {
-      margin-top: 15px;
-      font-size: 20px;
-      color: #ffffff;
-    }
+        #loadingPopup.show {
+            display: flex;
+            opacity: 1;
+        }
 
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px; /* เว้นช่องกับข้อความ */
+        }
 
-      100% {
-        transform: rotate(360deg);
-      }
-    
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            text-shadow: 1px 1px 2px black;
+            color: white;
+        }
     </style>
 </head>
 
@@ -606,12 +606,9 @@
 
         }
         function showLoader(message) {
-    // แสดง loader
-    document.getElementById("loader").style.display = "flex";
-    
-    // เปลี่ยนข้อความใน loader
-    document.querySelector(".loading-text").textContent = message;
-}
+            document.getElementById("loader").style.display = "flex";
+            document.querySelector(".loading-text").textContent = message;
+        }
 
 function hideLoader() {
     // ซ่อน loader
