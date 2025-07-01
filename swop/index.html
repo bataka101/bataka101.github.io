@@ -1,1 +1,435 @@
+<!DOCTYPE html>
+<html lang="th">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกข้อมูล Swop Modem</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0c2461, #1e3799, #4a69bd);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 550px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      padding: 40px 35px;
+      animation: fadeIn 0.8s ease-out;
+      position: relative;
+    }
+
+    .header-decor {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(to right, #0c2461, #4a69bd, #f6b93b);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      padding-top: 20px;
+    }
+
+    .header h1 {
+      color: #2c3e50;
+      font-size: 2.6rem;
+      margin-bottom: 12px;
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(45deg, #0c2461, #e55039);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 4px;
+      background: linear-gradient(to right, #0c2461, #f6b93b);
+      border-radius: 2px;
+    }
+
+    .header p {
+      color: #7f8c8d;
+      font-size: 1.15rem;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.15rem;
+      padding-left: 8px;
+    }
+
+    .input-container {
+      position: relative;
+      display: flex;
+    }
+
+    .input-container i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #3498db;
+      font-size: 1.3rem;
+      z-index: 2;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 16px 20px 16px 55px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px 0 0 12px;
+      font-size: 1.15rem;
+      transition: all 0.3s ease;
+      background-color: #f9f9f9;
+      height: 60px;
+      border-right: none;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      background-color: #fff;
+    }
+
+    .scan-btn {
+      width: 70px;
+      background: linear-gradient(to bottom, #4a69bd, #1e3799);
+      border: none;
+      border-radius: 0 12px 12px 0;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.4rem;
+      position: relative;
+    }
+
+    /* ปรับไอคอนใหม่ */
+    .scan-btn .icon-wrapper {
+      position: relative;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .scan-btn .barcode-icon {
+      position: absolute;
+      font-size: 1.8rem;
+      opacity: 0.9;
+    }
+
+    .scan-btn .camera-icon {
+      position: absolute;
+      font-size: 1.1rem;
+      bottom: -4px;
+      right: -6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      padding: 3px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .scan-btn:hover {
+      background: linear-gradient(to bottom, #3c5aa6, #0c2461);
+    }
+
+    .scan-btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-save {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(to right, #0c2461, #e55039);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 25px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      letter-spacing: 1px;
+    }
+
+    .btn-save:hover {
+      background: linear-gradient(to right, #0a1d4d, #c0392b);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-save:active {
+      transform: translateY(0);
+    }
+
+    .btn-save i {
+      margin-right: 12px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 35px;
+      color: #7f8c8d;
+      font-size: 0.95rem;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .notification {
+      position: fixed;
+      top: 25px;
+      right: 25px;
+      padding: 18px 30px;
+      background: linear-gradient(to right, #27ae60, #2ecc71);
+      color: white;
+      border-radius: 10px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      transform: translateX(150%);
+      transition: transform 0.4s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      font-size: 1.1rem;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification i {
+      margin-right: 12px;
+      font-size: 1.5rem;
+    }
+
+    .scanner-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .scanner-animation.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .scanner-box {
+      width: 300px;
+      height: 300px;
+      border: 2px solid #fff;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
+    }
+
+    .laser-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(to right, #3498db, #2ecc71, #e74c3c);
+      animation: scan 2s infinite linear;
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0;
+      }
+
+      50% {
+        top: 100%;
+      }
+
+      100% {
+        top: 0;
+      }
+    }
+
+    .close-scanner {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    .scanner-text {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    @media (max-width: 576px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        font-size: 2.2rem;
+      }
+
+      .btn-save {
+        padding: 16px;
+        font-size: 1.15rem;
+      }
+
+      .scan-btn {
+        width: 60px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header-decor"></div>
+    <div class="header">
+      <h1><i class="fas fa-exchange-alt"></i> Swop Modem</h1>
+      <p>ระบบบันทึกข้อมูลการสลับอุปกรณ์โมเด็ม กรุณากรอกหมายเลขโดเดมเก่าและโดเดมใหม่ พร้อมกดปุ่ม Scan เพื่ออ่านบาร์โค้ด
+      </p>
+    </div>
+
+
+    <div class="form-group">
+      <label for="oldModem"><i class="fas fa-network-wired"></i> โดเดมเก่า</label>
+      <div class="input-container">
+        <i class="fas fa-barcode"></i>
+        <input type="text" id="oldModem" placeholder="กรุณากรอกหมายเลขโดเดมเก่า" required>
+        <button type="button" class="scan-btn" onclick="openScanner('oldModem')">
+                        <div class="icon-wrapper">
+                            Scan
+                        </div>
+                    </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="newModem"><i class="fas fa-wifi"></i> โดเดมใหม่</label>
+      <div class="input-container">
+        <i class="fas fa-barcode"></i>
+        <input type="text" id="newModem" placeholder="กรุณากรอกหมายเลขโดเดมใหม่" required>
+        <button type="button" class="scan-btn" onclick="openScanner('newModem')">
+                        <div class="icon-wrapper">
+                            Scan
+                        </div>
+                    </button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-save">
+                <i class="fas fa-save"></i> บันทึกข้อมูล
+            </button>
+
+
+    <div class="footer">
+      <p>ระบบบันทึกข้อมูลการสลับอุปกรณ์เครือข่าย | © 2023</p>
+    </div>
+  </div>
+
+  <div class="notification" id="notification">
+    <i class="fas fa-check-circle"></i> บันทึกข้อมูลเรียบร้อยแล้ว!
+  </div>
+
+  <div class="scanner-animation" id="scanner">
+    <div class="close-scanner" onclick="closeScanner()">
+      <i class="fas fa-times"></i>
+    </div>
+    <div class="scanner-box">
+      <div class="laser-line"></div>
+    </div>
+    <div class="scanner-text">กำลังสแกนบาร์โค้ด... กรุณานำบาร์โค้ดเข้าหากล้อง</div>
+  </div>
+
+  <script>
+    liff.init({
+      liffId: "2007215052-GgbWVbel", // Use own liffId
+    }).then(() => {
+      if (!liff.isLoggedIn()) {
+              liff.login();
+            } else {
+              //เริ่ม else
+              liff.getProfile().then((profile) => {
+                const userID = profile.userId;
+                console.log(userID);
+              });
+            } //สุด else
+    })
+  
+
+  </script>
+</body>
+
+</html>
