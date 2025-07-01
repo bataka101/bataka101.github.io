@@ -464,56 +464,59 @@
                 flex-direction: column;
             }
         }
+
         .loader-wrapper {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(105, 105, 105, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 9999;
-    }
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(105, 105, 105, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
 
-    .loader {
-      border: 10px solid #f3f3f3;
-      border-top: 10px solid #3498db;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
-    }
+        .loader {
+            border: 10px solid #f3f3f3;
+            border-top: 10px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
 
-    .loading-text {
-      margin-top: 15px;
-      font-size: 20px;
-      color: #ffffff;
-    }
+        .loading-text {
+            margin-top: 15px;
+            font-size: 20px;
+            color: #ffffff;
+        }
 
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
 
-      100% {
-        transform: rotate(360deg);
-      }
-    }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
 <body>
-     <div class="loader-wrapper" id="loader" style="display: none;">
-    <div class="loader"></div>
-    <div class="loading-text">กำลังโหลด..</div>
-  </div>
+    <div id="loader" class="loadingPopup">
+        <div class="spinner"></div>
+        <div class="loading-text">กำลังโหลด...</div>
+    </div>
+
     <!-- ส่วนแสดงโปรไฟล์ LINE -->
     <div class="profile-bar">
         <div class="profile-pic">
-            <img id="imgLine" src="https://raw.githubusercontent.com/bataka101/img/main/circle_7081415.png" alt="LINE Profile">
+            <img id="imgLine" src="https://raw.githubusercontent.com/bataka101/img/main/circle_7081415.png"
+                alt="LINE Profile">
         </div>
         <div class="profile-info">
             <div class="profile-name" id="nameLine"></div>
@@ -581,7 +584,7 @@
     </div>
 
     <script>
-        showLoader();
+        showLoader("ทดสอบ..");
         liff.init({
             liffId: "2007215052-GgbWVbel", // Use own liffId
         }).then(() => {
@@ -595,19 +598,29 @@
                     const name = profile.displayName;
                     document.getElementById("imgLine").src = img;
                     document.getElementById("nameLine").textContent = name;
-                    hideLoader();
+
                 });
             } //สุด else
         })
 
-    function showLoader() {
-      document.getElementById("loader").style.display = "flex";
-    }
+        function loadUserId() {
+
+        }
+        function showLoader(message) {
+    // แสดง loader
+    document.getElementById("loader").style.display = "flex";
+    
+    // เปลี่ยนข้อความใน loader
+    document.querySelector(".loading-text").textContent = message;
+}
 
 function hideLoader() {
-      document.getElementById("loader").style.display = "none";
-    }
-        
+    // ซ่อน loader
+    document.getElementById("loader").style.display = "none";
+}
+
+
+
     </script>
 </body>
 
