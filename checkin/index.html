@@ -322,7 +322,8 @@
               async function sendData(idEm, name, position, department) {
                 const url =
                   "https://script.google.com/macros/s/AKfycbx9rbbBHd8DZy3lUsXPz69xQ4tNg6OE8jjBP_7y1AIO761DBfVbKTYN_p_OXjbIe0iV/exec"; // URL ที่ Deploy GAS
-                const data = { idEm, name, position, department,closestLocation.name };
+                const lalong = closestLocation.name;
+                const data = { idEm, name, position, department,lalong };
                 const response = await fetch(url, {
                   method: "POST",
                   headers: {
